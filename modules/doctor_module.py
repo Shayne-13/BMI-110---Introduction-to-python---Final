@@ -467,6 +467,22 @@ def run_menu(title, options):
 # Staff Management:
 
 
+def ViewStaffScreen():
+    ClearConsole()
+    print("\n--- Staff Database ---")
+    if not clinicalBackend.doctors and not clinicalBackend.nurses:
+        print("No Staff on record.")
+
+    if clinicalBackend.doctors:
+        for patient in clinicalBackend.doctors.values():
+            patient.DisplayInfo()
+
+    if clinicalBackend.nurses:
+        for patient in clinicalBackend.nurses.values():
+            patient.DisplayInfo()
+    pause()
+
+
 def CreateDoctorScreen():
     ClearConsole()
     print("\n--- Create New Doctor ---")
@@ -497,6 +513,7 @@ def CreateNurseScreen():
 
 def StaffManagementMenu(staffPerms):
     options = []
+    options.append(("View Staff Database", ViewStaffScreen))
     if staffPerms.get("createsDoctors"):
         options.append(("Create Doctor", CreateDoctorScreen))
     if staffPerms.get("createsNurses"):
