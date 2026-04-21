@@ -8,27 +8,13 @@ from subprocess import call
 
 
 class MedicalInterfaceBackend:
-    """
-    Central backend for the medical interface system.
-
-    Manages all staff (doctors, nurses), patients, and lab orders.
-    Handles login/authentication, role-based permission enforcement,
-    and JSON-based persistence to disk.
-
-    Attributes:
-        doctors (dict): Maps doctor ID strings to Doctor objects.
-        nurses (dict): Maps nurse ID strings to Nurse objects.
-        patients (dict): Maps patient ID strings to Patient objects.
-        lab_orders (list): List of all LabOrder objects in the system.
-        currentUserPermissions (dict): Permission flags for the currently logged-in user.
-        currentUserCredentials (dict): Credentials/metadata for the currently logged-in user.
-    """
+    """Central backend managing doctors, nurses, patients, lab orders, and authentication."""
 
     def __init__(self):
-        self.doctors = {}  # id -> Doctor object
-        self.nurses = {}  # id -> Nurse object
-        self.patients = {}  # id -> Patient object
-        self.lab_orders = []  # list of LabOrder objects
+        self.doctors = {}
+        self.nurses = {}
+        self.patients = {}
+        self.lab_orders = []
 
         self.currentUserPermissions = {
             "readsOwnUserDetails": True,
@@ -66,20 +52,7 @@ class MedicalInterfaceBackend:
         strPhoneNumber,
         strSpecialty,
     ):
-        """
-        Register a new doctor in the system.
-
-        Args:
-            strUserIdentification (str): Unique doctor ID / username.
-            strPassword (str): Login password.
-            strFirstName (str): Doctor's first name.
-            strLastName (str): Doctor's last name.
-            strPhoneNumber (str): Contact phone number.
-            strSpecialty (str): Medical specialty (e.g. "Pediatric").
-
-        Returns:
-            bool: True if the doctor was created successfully, False if the ID already exists.
-        """
+        """Register a new doctor. Returns False if the ID already exists."""
         if strUserIdentification in self.doctors:
             print(f"Doctor ID '{strUserIdentification}' already exists.")
             return False
@@ -103,20 +76,7 @@ class MedicalInterfaceBackend:
         strPhoneNumber,
         strDepartment,
     ):
-        """
-        Register a new nurse in the system.
-
-        Args:
-            strUserIdentification (str): Unique nurse ID / username.
-            strPassword (str): Login password.
-            strFirstName (str): Nurse's first name.
-            strLastName (str): Nurse's last name.
-            strPhoneNumber (str): Contact phone number.
-            strDepartment (str): Department the nurse belongs to (e.g. "ICU").
-
-        Returns:
-            bool: True if the nurse was created successfully, False if the ID already exists.
-        """
+        """Register a new nurse. Returns False if the ID already exists."""
         if strUserIdentification in self.nurses:
             print(f"Nurse ID '{strUserIdentification}' already exists.")
             return False
@@ -140,20 +100,7 @@ class MedicalInterfaceBackend:
         strPhoneNumber,
         strAddress,
     ):
-        """
-        Register a new patient in the system.
-
-        Args:
-            strPatientID (str): Unique patient ID.
-            strFirstName (str): Patient's first name.
-            strLastName (str): Patient's last name.
-            strDateOfBirth (str): Date of birth in YYYY-MM-DD format.
-            strPhoneNumber (str): Contact phone number.
-            strAddress (str): Home address.
-
-        Returns:
-            bool: True if the patient was created successfully, False if the ID already exists.
-        """
+        """Register a new patient. Returns False if the ID already exists."""
         if strPatientID in self.patients:
             print(f"Patient ID '{strPatientID}' already exists.")
             return False
@@ -169,18 +116,7 @@ class MedicalInterfaceBackend:
         return True
 
     def CreateLabOrder(self, strPatientID, strOrderingDoctorID, strTestName, strNotes):
-        """
-        Create a new lab order for a patient.
-
-        Args:
-            strPatientID (str): ID of the patient the order is for.
-            strOrderingDoctorID (str): ID of the doctor placing the order.
-            strTestName (str): Name of the lab test (e.g. "CBC", "Urinalysis").
-            strNotes (str): Clinical notes or indication for the test.
-
-        Returns:
-            bool: True if the order was created, False if the patient ID was not found.
-        """
+        """Create a lab order for a patient. Returns False if the patient ID is not found."""
         if strPatientID not in self.patients:
             print(f"Patient '{strPatientID}' not found.")
             return False
@@ -190,44 +126,15 @@ class MedicalInterfaceBackend:
         return True
 
     def GetLabOrdersForPatient(self, strPatientID):
-        """
-        Retrieve all lab orders associated with a specific patient.
-
-        Args:
-            strPatientID (str): ID of the patient to filter by.
-
-        Returns:
-            list[LabOrder]: A list of LabOrder objects belonging to the patient.
-                            Returns an empty list if none are found.
-        """
+        """Return all lab orders for a given patient ID."""
         return [o for o in self.lab_orders if o.patient_id == strPatientID]
 
     def GetAllLabOrders(self):
-        """
-        Retrieve every lab order in the system.
-
-        Returns:
-            list[LabOrder]: A shallow copy of the full lab orders list.
-        """
+        """Return all lab orders in the system."""
         return list(self.lab_orders)
 
     def Login(self, strRole, strIdentification, strPassword):
-        """
-        Authenticate a user and load their permissions into the session.
-
-        Patients are not password-authenticated — any patient ID is accepted.
-        On success, updates ``currentUserCredentials`` and ``currentUserPermissions``
-        with the authenticated user's data.
-
-        Args:
-            strRole (str): Role to authenticate as. Must be "Doctor", "Nurse", or "Patient".
-            strIdentification (str): The user's ID / username.
-            strPassword (str): The user's password (ignored for Patient logins).
-
-        Returns:
-            Doctor | Nurse | Patient | bool: The authenticated role object on success,
-                                             or False if authentication fails.
-        """
+        """Authenticate a user and load their permissions. Returns the role object or False."""
         if strRole == "Doctor":
             found = self.doctors.get(strIdentification)
             if found and found._Doctor__password == strPassword:
@@ -252,24 +159,21 @@ class MedicalInterfaceBackend:
         return False
 
     def load_all(self):
-        """Load all data from disk. Calls individual loaders for each entity type."""
+        """Load all data from disk."""
         self._load_doctors()
         self._load_nurses()
         self._load_patients()
         self._load_lab_orders()
 
     def save_all(self):
-        """Persist all in-memory data to disk. Calls individual savers for each entity type."""
+        """Persist all data to disk."""
         self._save_doctors()
         self._save_nurses()
         self._save_patients()
         self._save_lab_orders()
 
     def _load_doctors(self):
-        """
-        Load doctors from ``doctors.json`` into memory.
-        Silently skips if the file does not exist.
-        """
+        """Load doctors from doctors.json."""
         try:
             with open("doctors.json", "r") as f:
                 raw = json.load(f)
@@ -286,10 +190,7 @@ class MedicalInterfaceBackend:
             pass
 
     def _load_nurses(self):
-        """
-        Load nurses from ``nurses.json`` into memory.
-        Silently skips if the file does not exist.
-        """
+        """Load nurses from nurses.json."""
         try:
             with open("nurses.json", "r") as f:
                 raw = json.load(f)
@@ -306,10 +207,7 @@ class MedicalInterfaceBackend:
             pass
 
     def _load_patients(self):
-        """
-        Load patients from ``patients.json`` into memory.
-        Silently skips if the file does not exist.
-        """
+        """Load patients from patients.json."""
         try:
             with open("patients.json", "r") as f:
                 raw = json.load(f)
@@ -326,11 +224,7 @@ class MedicalInterfaceBackend:
             pass
 
     def _load_lab_orders(self):
-        """
-        Load lab orders from ``lab_orders.json`` into memory.
-        Uses ``__new__`` to reconstruct LabOrder objects without calling ``__init__``,
-        then restores state via ``__dict__``. Silently skips if the file does not exist.
-        """
+        """Load lab orders from lab_orders.json."""
         try:
             with open("lab_orders.json", "r") as f:
                 raw = json.load(f)
@@ -342,40 +236,28 @@ class MedicalInterfaceBackend:
             pass
 
     def _save_doctors(self):
-        """Serialize all Doctor objects to ``doctors.json``."""
+        """Save doctors to doctors.json."""
         with open("doctors.json", "w") as f:
             json.dump({k: v.__dict__ for k, v in self.doctors.items()}, f, indent=4)
 
     def _save_nurses(self):
-        """Serialize all Nurse objects to ``nurses.json``."""
+        """Save nurses to nurses.json."""
         with open("nurses.json", "w") as f:
             json.dump({k: v.__dict__ for k, v in self.nurses.items()}, f, indent=4)
 
     def _save_patients(self):
-        """Serialize all Patient objects to ``patients.json``."""
+        """Save patients to patients.json."""
         with open("patients.json", "w") as f:
             json.dump({k: v.__dict__ for k, v in self.patients.items()}, f, indent=4)
 
     def _save_lab_orders(self):
-        """Serialize all LabOrder objects to ``lab_orders.json``."""
+        """Save lab orders to lab_orders.json."""
         with open("lab_orders.json", "w") as f:
             json.dump([o.__dict__ for o in self.lab_orders], f, indent=4)
 
 
 class Doctor:
-    """
-    Represents a doctor in the medical system.
-
-    Doctors have full permissions: they can manage staff, manage patients,
-    and perform all clinical actions including ordering lab tests.
-
-    Attributes:
-        firstName (str): Doctor's first name.
-        lastName (str): Doctor's last name.
-        role (str): Always "Doctor".
-        specialty (str): Medical specialty (e.g. "Pediatric").
-        permissions (dict): Full permission set granted to all doctors.
-    """
+    """A doctor with full staff, patient, and clinical permissions."""
 
     def __init__(
         self,
@@ -386,17 +268,6 @@ class Doctor:
         strPhoneNumber,
         strSpecialty,
     ):
-        """
-        Initialize a Doctor instance.
-
-        Args:
-            strIdentification (str): Unique doctor ID / username.
-            strPassword (str): Login password (stored as a private attribute).
-            strFirstName (str): Doctor's first name.
-            strLastName (str): Doctor's last name.
-            strPhoneNumber (str): Contact phone number (stored as a private attribute).
-            strSpecialty (str): Medical specialty.
-        """
         self.__user_id = strIdentification
         self.__password = strPassword
         self.__phone = strPhoneNumber
@@ -425,7 +296,7 @@ class Doctor:
         }
 
     def DisplayInfo(self):
-        """Print the doctor's profile information to the console."""
+        """Print the doctor's profile to the console."""
         print(
             f"\n--- Doctor Info ---"
             f"\nID:        {self.__user_id}"
@@ -445,23 +316,7 @@ class Doctor:
         strNewPassword,
         strCurrentPassword,
     ):
-        """
-        Update the doctor's profile after verifying their current password.
-
-        Args:
-            strIdentification (str): New doctor ID / username.
-            strFirstName (str): New first name.
-            strLastName (str): New last name.
-            strPhoneNumber (str): New phone number.
-            strSpecialty (str): New medical specialty.
-            strNewPassword (str): New password to set.
-            strCurrentPassword (str): Current password for verification.
-
-        Returns:
-            tuple[bool, str]: A (success, message) tuple.
-                - (False, error message) if the current password is incorrect.
-                - (True, success message) if the update completed.
-        """
+        """Update profile after verifying current password. Returns a (bool, message) tuple."""
         if strCurrentPassword != self.__password:
             return (False, "Current password is incorrect; information not updated.")
         self.__user_id = strIdentification
@@ -474,19 +329,7 @@ class Doctor:
 
 
 class Nurse:
-    """
-    Represents a nurse in the medical system.
-
-    Nurses have limited permissions: they can create and view patients,
-    view lab tests, but cannot manage staff or order lab tests.
-
-    Attributes:
-        firstName (str): Nurse's first name.
-        lastName (str): Nurse's last name.
-        role (str): Always "Nurse".
-        department (str): Department the nurse belongs to.
-        permissions (dict): Restricted permission set granted to all nurses.
-    """
+    """A nurse with patient-read and lab-view permissions, but no staff management."""
 
     def __init__(
         self,
@@ -497,17 +340,6 @@ class Nurse:
         strPhoneNumber,
         strDepartment,
     ):
-        """
-        Initialize a Nurse instance.
-
-        Args:
-            strIdentification (str): Unique nurse ID / username.
-            strPassword (str): Login password (stored as a private attribute).
-            strFirstName (str): Nurse's first name.
-            strLastName (str): Nurse's last name.
-            strPhoneNumber (str): Contact phone number (stored as a private attribute).
-            strDepartment (str): Department the nurse belongs to.
-        """
         self.__user_id = strIdentification
         self.__password = strPassword
         self.__phone = strPhoneNumber
@@ -536,7 +368,7 @@ class Nurse:
         }
 
     def DisplayInfo(self):
-        """Print the nurse's profile information to the console."""
+        """Print the nurse's profile to the console."""
         print(
             f"\n--- Nurse Info ---"
             f"\nID:         {self.__user_id}"
@@ -548,20 +380,7 @@ class Nurse:
 
 
 class Patient:
-    """
-    Represents a patient in the medical system.
-
-    Patients have minimal permissions: they can only view their own
-    profile. They cannot access staff, other patients, or clinical data.
-
-    Attributes:
-        patient_id (str): Unique patient ID.
-        firstName (str): Patient's first name.
-        lastName (str): Patient's last name.
-        dateOfBirth (str): Date of birth in YYYY-MM-DD format.
-        role (str): Always "Patient".
-        permissions (dict): Minimal permission set granted to all patients.
-    """
+    """A patient with read-only access to their own profile."""
 
     def __init__(
         self,
@@ -572,17 +391,6 @@ class Patient:
         strPhoneNumber,
         strAddress,
     ):
-        """
-        Initialize a Patient instance.
-
-        Args:
-            strPatientID (str): Unique patient ID.
-            strFirstName (str): Patient's first name.
-            strLastName (str): Patient's last name.
-            strDateOfBirth (str): Date of birth in YYYY-MM-DD format.
-            strPhoneNumber (str): Contact phone number (stored as a private attribute).
-            strAddress (str): Home address (stored as a private attribute).
-        """
         self.patient_id = strPatientID
         self.firstName = strFirstName
         self.lastName = strLastName
@@ -611,7 +419,7 @@ class Patient:
         }
 
     def DisplayInfo(self):
-        """Print the patient's profile information to the console."""
+        """Print the patient's profile to the console."""
         print(
             f"\n--- Patient Info ---"
             f"\nID:            {self.patient_id}"
@@ -623,31 +431,9 @@ class Patient:
 
 
 class LabOrder:
-    """
-    Represents a single lab test order.
-
-    Each order is assigned a unique 8-character ID on creation and
-    begins with a status of "Pending".
-
-    Attributes:
-        order_id (str): Auto-generated unique 8-character uppercase order ID.
-        patient_id (str): ID of the patient the order is for.
-        ordering_doctor_id (str): ID of the doctor who placed the order.
-        test_name (str): Name of the lab test (e.g. "CBC", "Lipid Panel").
-        notes (str): Clinical notes or indication for the test.
-        status (str): Current order status. Defaults to "Pending".
-    """
+    """A lab test order with an auto-generated ID and a default status of Pending."""
 
     def __init__(self, strPatientID, strOrderingDoctorID, strTestName, strNotes):
-        """
-        Initialize a LabOrder instance.
-
-        Args:
-            strPatientID (str): ID of the patient the order is for.
-            strOrderingDoctorID (str): ID of the doctor placing the order.
-            strTestName (str): Name of the lab test.
-            strNotes (str): Clinical notes or indication.
-        """
         self.order_id = str(uuid.uuid4())[:8].upper()
         self.patient_id = strPatientID
         self.ordering_doctor_id = strOrderingDoctorID
@@ -667,56 +453,28 @@ class LabOrder:
         )
 
 
-# ---------------------------------------------------------------------------
-# Helper / Utility Functions
-# ---------------------------------------------------------------------------
-
-
+# Helper stuff:
 def ClearConsole(intTimeout=0):
-    """
-    Clear the terminal screen, optionally after a delay.
-
-    Args:
-        intTimeout (int | float): Seconds to wait before clearing. Defaults to 0 (immediate).
-    """
+    """Clear the terminal, optionally after a delay in seconds."""
     if intTimeout:
         sleep(intTimeout)
     call("clear" if os.name == "posix" else "cls")
 
 
 def prompt(label, secret=False):
-    """
-    Prompt the user for input, with optional hidden input for passwords.
-
-    Args:
-        label (str): The prompt label displayed to the user.
-        secret (bool): If True, input is hidden (suitable for passwords). Defaults to False.
-
-    Returns:
-        str: The user's input, stripped of leading/trailing whitespace.
-    """
+    """Prompt for user input. Pass secret=True to hide input (for passwords)."""
     if secret:
         return getpass.getpass(f"{label}: ")
     return input(f"{label}: ").strip()
 
 
 def pause():
-    """Pause execution until the user presses Enter."""
+    """Wait for the user to press Enter."""
     input("\nPress Enter to continue...")
 
 
 def run_menu(title, options):
-    """
-    Display a numbered menu and dispatch the selected action in a loop.
-
-    Continues looping until the user selects option 0 to return.
-
-    Args:
-        title (str): Title displayed at the top of the menu.
-        options (list[tuple[str, callable]]): A list of (label, function) pairs.
-            Each function is called with no arguments when selected.
-            Option 0 is always implicitly "Return" and exits the loop.
-    """
+    """Display a numbered menu and dispatch selections. Option 0 returns to the previous menu."""
     while True:
         ClearConsole()
         print(f"\n=== {title} ===\n")
@@ -735,22 +493,18 @@ def run_menu(title, options):
             sleep(1)
 
 
-# ---------------------------------------------------------------------------
-# Staff Management Screens
-# ---------------------------------------------------------------------------
+# Staff Management
 
 
 def ViewStaffScreen():
-    """Display all doctors and nurses currently registered in the system."""
+    """Display all doctors and nurses in the system."""
     ClearConsole()
     print("\n--- Staff Database ---")
     if not clinicalBackend.doctors and not clinicalBackend.nurses:
         print("No Staff on record.")
-
     if clinicalBackend.doctors:
         for patient in clinicalBackend.doctors.values():
             patient.DisplayInfo()
-
     if clinicalBackend.nurses:
         for patient in clinicalBackend.nurses.values():
             patient.DisplayInfo()
@@ -758,7 +512,7 @@ def ViewStaffScreen():
 
 
 def CreateDoctorScreen():
-    """Prompt for new doctor details and register them in the system."""
+    """Prompt for new doctor details and register them."""
     ClearConsole()
     print("\n--- Create New Doctor ---")
     ident = prompt("Doctor ID / Username")
@@ -773,7 +527,7 @@ def CreateDoctorScreen():
 
 
 def CreateNurseScreen():
-    """Prompt for new nurse details and register them in the system."""
+    """Prompt for new nurse details and register them."""
     ClearConsole()
     print("\n--- Create New Nurse ---")
     ident = prompt("Nurse ID / Username")
@@ -788,15 +542,8 @@ def CreateNurseScreen():
 
 
 def StaffManagementMenu(staffPerms):
-    """
-    Display the Staff Management submenu with options filtered by the user's permissions.
-
-    Args:
-        staffPerms (dict): The "StaffManagement" slice of the current user's permissions dict.
-            Expected keys: "createsDoctors" (bool), "createsNurses" (bool).
-    """
-    options = []
-    options.append(("View Staff Database", ViewStaffScreen))
+    """Staff management submenu, filtered by the current user's permissions."""
+    options = [("View Staff Database", ViewStaffScreen)]
     if staffPerms.get("createsDoctors"):
         options.append(("Create Doctor", CreateDoctorScreen))
     if staffPerms.get("createsNurses"):
@@ -804,13 +551,11 @@ def StaffManagementMenu(staffPerms):
     run_menu("Staff Management", options)
 
 
-# ---------------------------------------------------------------------------
-# Patient Management Screens
-# ---------------------------------------------------------------------------
+# Patient Management
 
 
 def CreatePatientScreen():
-    """Prompt for new patient details and register them in the system."""
+    """Prompt for new patient details and register them."""
     ClearConsole()
     print("\n--- Create New Patient ---")
     pid = prompt("Patient ID")
@@ -825,7 +570,7 @@ def CreatePatientScreen():
 
 
 def ViewAllPatientsScreen():
-    """Display all patients currently registered in the system."""
+    """Display all patients in the system."""
     ClearConsole()
     print("\n--- Patient Database ---")
     if not clinicalBackend.patients:
@@ -837,7 +582,7 @@ def ViewAllPatientsScreen():
 
 
 def ViewPatientByIDScreen():
-    """Prompt for a patient ID and display that patient's information."""
+    """Prompt for a patient ID and display that patient's info."""
     ClearConsole()
     print("\n--- View Patient by ID ---")
     pid = prompt("Enter Patient ID")
@@ -850,13 +595,7 @@ def ViewPatientByIDScreen():
 
 
 def PatientManagementMenu(patientPerms):
-    """
-    Display the Patient Management submenu with options filtered by the user's permissions.
-
-    Args:
-        patientPerms (dict): The "PatientManagement" slice of the current user's permissions dict.
-            Expected keys: "createsPatients" (bool), "readsPatientDetails" (bool).
-    """
+    """Patient management submenu, filtered by the current user's permissions."""
     options = []
     if patientPerms.get("createsPatients"):
         options.append(("Create Patient", CreatePatientScreen))
@@ -866,41 +605,31 @@ def PatientManagementMenu(patientPerms):
     run_menu("Patient Management", options)
 
 
-# ---------------------------------------------------------------------------
-# Clinical Actions Screens
-# ---------------------------------------------------------------------------
+# Clinical Actions
 
 
 def OrderLabTestScreen():
-    """
-    Prompt the logged-in doctor to order a lab test for a selected patient.
-
-    Displays all available patients before prompting for input.
-    Automatically uses the currently logged-in doctor's ID as the ordering doctor.
-    """
+    """Prompt the logged-in doctor to order a lab test for a patient."""
     ClearConsole()
     print("\n--- Order Lab Test ---")
     if not clinicalBackend.patients:
         print("No patients on record. Please create a patient first.")
         pause()
         return
-
     print("Available Patients:")
     for pid, p in clinicalBackend.patients.items():
         print(f"  {pid} - {p.firstName} {p.lastName}")
-
     pid = prompt("\nPatient ID")
     test_name = prompt("Test Name (e.g. CBC, Lipid Panel, Urinalysis)")
     notes = prompt("Notes / Clinical Indication")
     doctor_id = clinicalBackend.currentUserCredentials["Identification"]
-
     clinicalBackend.CreateLabOrder(pid, doctor_id, test_name, notes)
     clinicalBackend.save_all()
     pause()
 
 
 def ViewAllLabOrdersScreen():
-    """Display all lab orders currently in the system."""
+    """Display all lab orders in the system."""
     ClearConsole()
     print("\n--- All Lab Orders ---")
     orders = clinicalBackend.GetAllLabOrders()
@@ -913,7 +642,7 @@ def ViewAllLabOrdersScreen():
 
 
 def ViewLabOrdersByPatientScreen():
-    """Prompt for a patient ID and display all lab orders associated with that patient."""
+    """Prompt for a patient ID and display their lab orders."""
     ClearConsole()
     print("\n--- Lab Orders by Patient ---")
     pid = prompt("Enter Patient ID")
@@ -928,13 +657,7 @@ def ViewLabOrdersByPatientScreen():
 
 
 def ClinicalActionsMenu(clinicalPerms):
-    """
-    Display the Clinical Actions submenu with options filtered by the user's permissions.
-
-    Args:
-        clinicalPerms (dict): The "ClinicalActions" slice of the current user's permissions dict.
-            Expected keys: "ordersLabTests" (bool), "viewsLabTests" (bool).
-    """
+    """Clinical actions submenu, filtered by the current user's permissions."""
     options = []
     if clinicalPerms.get("ordersLabTests"):
         options.append(("Order Lab Test", OrderLabTestScreen))
@@ -944,21 +667,11 @@ def ClinicalActionsMenu(clinicalPerms):
     run_menu("Clinical Actions", options)
 
 
-# ---------------------------------------------------------------------------
-# Login Screens
-# ---------------------------------------------------------------------------
+# Login Things
 
 
 def CredentialsMenu(role):
-    """
-    Prompt for credentials and authenticate the user, retrying on failure.
-
-    Args:
-        role (str): The role to authenticate as ("Doctor", "Nurse", or "Patient").
-
-    Returns:
-        Doctor | Nurse | Patient: The authenticated role object on success.
-    """
+    """Prompt for credentials and authenticate, retrying on failure."""
     ClearConsole()
     while True:
         identification = prompt("Username")
@@ -974,14 +687,7 @@ def CredentialsMenu(role):
 
 
 def LoginMenu():
-    """
-    Prompt the user to select a role and log in.
-
-    Loops until a valid role is entered, then delegates to ``CredentialsMenu``.
-
-    Returns:
-        Doctor | Nurse | Patient: The authenticated role object.
-    """
+    """Prompt the user to select a role and log in."""
     ClearConsole()
     while True:
         role = prompt("Enter role (Patient/Nurse/Doctor)")
@@ -992,21 +698,11 @@ def LoginMenu():
             return CredentialsMenu(role)
 
 
-# ---------------------------------------------------------------------------
-# Main User Menu
-# ---------------------------------------------------------------------------
+# main menu
 
 
 def userMenu(currentUserRoleObject):
-    """
-    Display the main menu for the logged-in user, showing only permitted options.
-
-    Loops until the user selects exit (option 0), at which point all data is saved.
-
-    Args:
-        currentUserRoleObject (Doctor | Nurse | Patient): The authenticated user object
-            returned by ``LoginMenu``. Used to call ``DisplayInfo`` for the user's own profile.
-    """
+    """Main menu loop. Shows only options permitted for the logged-in user."""
     while True:
         ClearConsole()
         ident = clinicalBackend.currentUserCredentials.get("Identification")
@@ -1061,16 +757,12 @@ def userMenu(currentUserRoleObject):
             sleep(1)
 
 
-# ---------------------------------------------------------------------------
-# Entry Point
-# ---------------------------------------------------------------------------
-
-
+# I had to do this so it would play nice with the pydoc tool
 if __name__ == "__main__":
     clinicalBackend = MedicalInterfaceBackend()
     clinicalBackend.load_all()
 
-    # Seed a default doctor on first run so the system is never locked out
+    # Seed a default doctor on first run
     if not clinicalBackend.doctors:
         clinicalBackend.CreateDoctor(
             "chief", "123", "Andrew", "Jordan", "4808121294", "Pediatric"
