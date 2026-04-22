@@ -1,0 +1,113 @@
+.pageDiv {
+    display: flex;
+    overflow-x: hidden;
+}
+
+.navDiv {
+    background-color: #023e8a;
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: fixed;
+}
+
+.titleDiv {
+    background-color: #0096c7;
+    display: flex;
+    align-items: center;
+}
+
+.endDiv {
+    margin: 25px;
+}
+
+.profileDiv {
+    display: flex;
+    align-items: center;
+}
+
+.selectionDiv {}
+
+.uiDiv {
+    margin-left: 500px;
+    flex: 1;
+}
+
+.uiHeaderDiv {
+
+}
+
+.titleFont {
+    color: white;
+    margin: 0px;
+    padding: 25px;
+    font-size: 40px;
+}
+
+.pfpText {
+    color: white;
+    margin-left: 25px;
+}
+
+.pfpUser {
+    align-items: center;
+}
+
+.myButton {
+    height: 65px;
+    width: 500px;
+    border: 0px;
+    background-color: #0096c7;
+    display: flex;
+    align-items: center;
+    font-size: 25px;
+    color: white;
+}
+.myButton:hover {
+    background-color: #0077b6;
+}
+
+.navFooter {
+    color: white;
+    margin-top: 560px;
+    margin-left: 15px;
+}
+
+.logoutButton {
+    background-color: #0096c7;
+    border: 0px;
+}
+.logoutButton:hover {
+    background-color: rgb(255, 138, 138);
+}
+
+.endButton {
+    background-color: #f08787;
+    border: 0px;
+}
+.endButton:hover {
+    background-color: #ff6464;
+}
+
+.uiHeaderTitle {
+    margin-left: 25px;
+    font-size: 40px;
+}
+
+.loginSelection {
+    background-color: rgba(226, 226, 226, 0.555);
+    margin: 0px;
+    min-height: 100vh;
+}
+
+.loginButton {
+    margin: 95px;
+    height: 50px;
+    width: 125px;
+    font-size: 25px;
+}
+
+.loginPage {
+    visibility: visible;
+}

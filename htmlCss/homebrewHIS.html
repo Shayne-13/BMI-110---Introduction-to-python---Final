@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hbrw Hospital Information System</title>
+    <link rel="stylesheet" href="homebrewHIS.css">
+    <script defer src="systemCode.py"></script>
+</head>
+<body style="padding: 0; margin: 0;">
+    <!-- Div = Main browser -->
+    <div class="pageDiv" >
+    <!-- Div = Whole side panle of website for navagation -->
+    <div class="navDiv">
+        <!-- Div = Title and will also contian the end program command -->
+        <div class="titleDiv">
+
+            <h1 class="titleFont" style="margin-right: 30px;">Homebrew HIS</h1>
+
+            <!-- Div = End program -->
+            <div class="endDiv">
+
+                <button class="endButton" style="height: 50px; width: 100px;">End program</button>
+
+            </div>
+
+        </div>
+        <!-- Div = shows profile -->
+        <div class="profileDiv">
+
+            <div>
+
+                <img src="avatarV7.png" alt="Avatart Icon" style="height: 55px; margin-left: 15px; margin-top: 8px;">
+                <span class="pfpDot"></span>
+
+            </div>
+
+            <div class="pfpUser">
+                <h2 class="pfpText" style="margin-bottom: 0px;">Username</h2>
+                <h3 class="pfpText" style="margin-top: 0px; margin-bottom: 15px;">Patient</h3>
+            </div>
+
+            <div style="margin-left: 110px; margin-right: 110px;"></div>
+
+            <button class="logoutButton"><img src="logoutIconV2.png" alt="Logout" style="height: 50px;"></button>
+
+        </div>
+        <!-- Div = Contains all selections for program -->
+        <div class="selectionDiv">
+
+            <div>
+
+                <button class="myButton"> 
+                    <img src="InformationV2.png" alt="Information Icon" style="height: 50px; padding-right: 25px; padding-left: 7px;">
+                    My Information</button>
+
+            </div>
+
+            <div>
+
+                <button class="myButton">
+                    <img src="patientIcon.svg" alt="Patient Icon" style="height: 50px; padding-right: 19px;">
+                    Patient Management</button>
+
+            </div>
+
+            <div>
+
+                <button class="myButton">
+                    <img src="staffIconV2.png" alt="Staff Icon" style="height: 50px; padding-right: 19px;">
+                    Staff Management</button>
+
+            </div>
+
+            <div>
+
+                <button class="myButton">
+                    <img src="clinicalIconV2.png" alt="Clinical Icon" style="height: 50px; padding-right: 21px;">
+                    Clinical Actions</button>
+
+            </div>
+
+        </div>
+
+        <div class="navFooter">
+
+            <h5>CPI 110 Project</h5>
+
+        </div>
+    </div>
+    <!-- Div = Div = Right side of the website for display -->
+    <div class="uiDiv">
+
+        <div class="loginPage">
+
+            <div class="uiHeaderDiv">
+
+                <h1 class="uiHeaderTitle">Login</h1>
+
+                <hr style="border: 5px solid rgba(0, 0, 0, 0.151); width: 100%; min-width: 100vh; margin: 0px;">
+
+            </div>
+
+            
+
+            <div class="loginSelection">
+
+                <h2 style="margin: 0px; padding-top: 75px; text-align: center; font-size: 45px;">Select Login Page.</h2>
+
+                <button class="loginButton">Doctor</button>
+
+                <button class="loginButton">Nurse</button>
+
+                <button class="loginButton">Patient</button>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+    </div>
+</body>
+</html>
